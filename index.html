@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+  (function() {
+    var GA_ID = 'G-K9RC2DTG5T';
+    var isLocalDev = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+    if (isLocalDev) return;
+    try { if (/[?&]no_ga=0/.test(location.search)) localStorage.removeItem('no_ga'); if (/[?&]no_ga=1/.test(location.search)) localStorage.setItem('no_ga', '1'); if (localStorage.getItem('no_ga') === '1') return; } catch (e) {}
+    var gaQ = new URLSearchParams(location.search); if (gaQ.get('obs') === '1' || gaQ.get('no_ga') === '1') return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', GA_ID);
+    document.addEventListener('click', function(e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href*="booth.pm"]') : null;
+      if (!a) return;
+      gtag('event', 'booth_click', { link_url: a.href, link_id: a.id || '', link_text: (a.textContent || '').trim().slice(0, 40) });
+    });
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="トーナメント表を無料で作成。参加者の名前を入れるだけで、人数が半端でもシード(1回戦なし)を自動で振り分け、ランダム抽選もできます。結果を入れると勝ち上がり線が赤くなり、3位決定戦にも対応。総当たりのリーグ表(対戦表・対戦順)も作れます。A4・A3に印刷、画像で保存してコンビニ印刷も。登録不要、入力した名前は送信しません。">
+<link rel="canonical" href="https://uuhai0625.github.io/tournament-hyo/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="トーナメント表作成ツール|名前を入れるだけ・シード自動・ランダム抽選・結果入力・リーグ表も(無料・印刷)">
+<meta property="og:description" content="トーナメント表を無料で作成。参加者の名前を入れるだけで、人数が半端でもシード(1回戦なし)を自動で振り分け、ランダム抽選もできます。結果を入れると勝ち上がり線が赤くなり、3位決定戦にも対応。総当たりのリーグ表(対戦表・対戦順)も作れます。A4・A3に印刷、画像で保存してコンビニ印刷も。登録不要、入力した名前は送信しません。">
+<meta property="og:url" content="https://uuhai0625.github.io/tournament-hyo/">
+<meta property="og:image" content="https://uuhai0625.github.io/tournament-hyo/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<title>トーナメント表作成ツール|名前を入れるだけ・シード自動・ランダム抽選・結果入力・リーグ表も(無料・印刷)</title>
+<style>
+  :root {
+    --bg: #f2f5f3;
+    --panel: #ffffff;
+    --border: #d9e0db;
+    --field-border: #535e57;
+    --text: #1f2a24;
+    --muted: #4f5b54;
+    --accent: #1f7a4d;
+    --accent-dark: #155a38;
+    --soft: #e8f3ed;
+    --ng: #b3261e;
+    --locked: #c5cfc9;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  header { background: var(--accent-dark); color: #fff; padding: 24px 20px 18px; text-align: center; }
+  header h1 { margin: 0 0 6px; font-size: 1.35rem; }
+  header p { margin: 0; font-size: .9rem; }
+  main { max-width: 1160px; margin: 0 auto; padding: 22px 16px 50px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); grid-template-areas: "entry pv" "style pv" "res pv"; column-gap: 18px; align-items: start; }
+  .layout > * { min-width: 0; }
+  #entry-card { grid-area: entry; } #style-card { grid-area: style; } #res-card { grid-area: res; }
+  #pv-card { grid-area: pv; position: sticky; top: 12px; }
+  section.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; }
+  section.card h2 { margin: 0 0 6px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .desc { color: var(--muted); font-size: .86rem; margin: 0 0 12px; }
+  .fine { color: var(--muted); font-size: .84rem; margin: 8px 0 0; }
+  .badge { display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 999px; background: #fff1cc; color: #7a5600; font-weight: bold; }
+  .hidden { display: none !important; }
+  label.field, div.field { display: block; margin-bottom: 12px; }
+  .lbl { font-size: .88rem; font-weight: bold; display: block; }
+  .hint { font-size: .8rem; color: var(--muted); font-weight: normal; display: block; margin-top: 2px; }
+  select, input[type=text], input[type=number], textarea { margin-top: 5px; min-height: 44px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 1rem; font-family: inherit; background: #fff; color: var(--text); width: 100%; padding: 8px 10px; }
+  textarea { min-height: 180px; resize: vertical; line-height: 1.5; }
+  .row2 { display: flex; gap: 12px; }
+  .row2 > * { flex: 1; min-width: 0; }
+  .seg { display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+  .seg label { flex: 1; min-width: 120px; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--field-border); border-radius: 8px; cursor: pointer; font-size: .9rem; }
+  .seg label:has(input:checked) { border-color: var(--accent); background: var(--soft); font-weight: bold; }
+  .seg input { width: 18px; height: 18px; accent-color: var(--accent); }
+  fieldset { border: 0; padding: 0; margin: 0 0 12px; min-width: 0; }
+  legend { font-size: .88rem; font-weight: bold; padding: 0; }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { min-height: 44px; min-width: 44px; padding: 9px 16px; border-radius: 8px; font-size: .9rem; cursor: pointer; border: 1px solid var(--field-border); background: #fff; color: var(--text); font-family: inherit; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
+  .btn-row .btn { flex: 1; }
+  .chk { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: .9rem; cursor: pointer; }
+  .chk input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+  .status { font-size: .86rem; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+  .status.err { color: var(--ng); font-weight: bold; }
+  .note { font-size: .86rem; margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--soft); }
+  .note.warn { background: #fff4e0; }
+  .pv { border: 1px solid var(--border); border-radius: 8px; background: #e3e8e5; padding: 12px; display: flex; justify-content: center; }
+  .pv canvas { max-width: 100%; max-height: min(640px, 75vh); width: auto; height: auto; display: block; box-shadow: 0 1px 4px rgba(0,0,0,.25); background: #fff; }
+  .res-list { list-style: none; margin: 8px 0 0; padding: 0; }
+  .res-list li { border-bottom: 1px dashed var(--border); padding: 8px 0; }
+  .res-list li.rh { border-bottom: 0; padding: 12px 0 0; font-weight: bold; font-size: .9rem; }
+  .res-list .mt { font-size: .84rem; color: var(--muted); }
+  .res-list .rowx { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .res-list select { width: auto; flex: 1 1 160px; }
+  .res-list input[type=text], .res-list input[type=number] { width: 84px; flex: 0 0 84px; }
+  .res-list .vs { font-size: .9rem; }
+  .sched { font-size: .88rem; margin: 8px 0 0; padding-left: 1.4em; }
+  .guide { font-size: .9rem; }
+  .guide h3 { font-size: .95rem; margin: 14px 0 4px; }
+  .guide ul { padding-left: 1.3em; margin: 6px 0; }
+  .guide li { margin: 4px 0; }
+  .locked-panel { border: 1px dashed var(--locked); border-radius: 10px; padding: 16px; text-align: center; color: var(--muted); background: #f8faf9; }
+  .locked-panel .lead { color: var(--text); font-weight: bold; }
+  .locked-panel .feat-list { text-align: left; max-width: 640px; margin: 10px auto; font-size: .88rem; padding-left: 1.2em; }
+  .buy-btn { display: inline-block; margin-top: 8px; background: var(--accent-dark); color: #fff; font-weight: bold; padding: 11px 22px; border-radius: 999px; text-decoration: none; font-size: .9rem; }
+  footer { max-width: 1160px; margin: 0 auto; padding: 0 16px 40px; font-size: .84rem; color: var(--muted); }
+  footer p { margin: 10px 0; }
+  footer a { color: var(--muted); }
+  #printArea { display: none; }
+  .jump { display: none; margin-top: 10px; font-size: .95rem; padding: 10px 0; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "entry" "style" "pv" "res"; }
+    #pv-card { position: static; }
+    .jump { display: inline-block; }
+  }
+  @media (max-width: 600px) {
+    .row2 { flex-direction: column; gap: 0; }
+    section.card { padding: 16px 12px; }
+  }
+  @media print {
+    body.printing > * { display: none !important; }
+    body.printing > #printArea { display: block !important; }
+    #printArea img { display: block; }
+  }
+</style>
+<style id="pageStyle">@page { size: A4 landscape; margin: 0; }</style>
+<!--ANSHIN_CSS_START--><style>:root{--anshin-w:1128px;--anshin-pad:16px}.anshin-strip,.anshin{box-sizing:border-box;width:min(var(--anshin-w),calc(100% - 2 * var(--anshin-pad)));margin-left:auto;margin-right:auto}.anshin-strip{list-style:none;margin-top:10px;margin-bottom:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:.8rem;line-height:1.5}.anshin-strip li{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid rgba(20,120,90,.45);border-radius:999px;background:rgba(20,120,90,.07)}.anshin-strip li.anshin-more{border:0;background:none;padding:3px 2px}.anshin-strip a,.anshin a{color:inherit}.anshin{margin-top:18px;margin-bottom:18px;padding:14px 18px;border:1px solid rgba(20,120,90,.45);border-radius:10px;background:rgba(20,120,90,.05);font-size:.86rem;line-height:1.7}.anshin h2{font-size:1rem;margin:0 0 6px}.anshin p{margin:0 0 6px}.anshin ul{margin:0;padding-left:1.2em}.anshin li{margin:3px 0}.anshin details{margin-top:6px}.anshin summary{cursor:pointer;font-weight:bold}.anshin .anshin-meta{margin:8px 0 0;font-size:.8rem;opacity:.85}@media print{.anshin,.anshin-strip{display:none!important}}</style><!--ANSHIN_CSS_END-->
+<!--UPSELL_CSS_START--><style>.upsell-top{box-sizing:border-box;width:min(var(--anshin-w,880px),calc(100% - 2 * var(--anshin-pad,16px)));margin:12px auto 0;font-size:.85rem;line-height:1.6}.upsell-top a{color:inherit}.upsell-assure{list-style:none;margin:12px 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;font-size:.8rem;line-height:1.5}.upsell-assure li{padding:3px 10px;border:1px solid rgba(20,120,90,.45);border-radius:12px;background:rgba(20,120,90,.06)}.upsell-terms{margin:8px 0 0;font-size:.78rem;line-height:1.6;opacity:.85}.upsell-toast{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9999;box-sizing:border-box;width:min(520px,calc(100% - 24px));padding:14px 56px 14px 16px;border-radius:12px;background:#fff;color:#222;border:1px solid #c9c2d6;box-shadow:0 6px 24px rgba(0,0,0,.18);font-size:.88rem;line-height:1.6}.upsell-toast p{margin:0 0 6px;font-weight:bold}.upsell-toast ul{margin:0 0 10px;padding-left:1.2em}.upsell-toast li{margin:2px 0}.upsell-toast .upsell-note{display:block;margin-top:6px;font-size:.75rem;color:#555}.upsell-toast .upsell-go{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:8px;background:#c9283e;color:#fff;font-weight:bold;text-decoration:none}.upsell-toast .upsell-go:focus-visible,.upsell-toast .upsell-x:focus-visible{outline:3px solid #2560c4;outline-offset:2px}.upsell-toast .upsell-x{position:absolute;top:4px;right:4px;width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:#555;font-size:1.3rem;line-height:1;cursor:pointer}.upsell-inline{white-space:nowrap;color:inherit;text-decoration:underline;text-underline-offset:2px}@media print{.upsell-top,.upsell-assure,.upsell-terms,.upsell-toast,.upsell-inline{display:none!important}}</style><!--UPSELL_CSS_END-->
+</head>
+<body>
+
+<header>
+  <h1>トーナメント表作成ツール</h1>
+  <p>参加者の名前を入れるだけで、トーナメント表を自動で作ります。人数が半端でもシード(1回戦なし)を自動で振り分け、ランダム抽選もできます。結果を入れると勝ち上がりの線が赤くなります。総当たりのリーグ表(対戦表)も作れます。A4・A3に印刷、画像でも保存。登録不要・スマホでも使えます</p>
+</header>
+<!--ANSHIN_STRIP_START-->
+<ul class="anshin-strip" aria-label="データの扱い">
+  <li><span aria-hidden="true">✓</span> 入力内容はこの端末の中だけで処理</li>
+  <li><span aria-hidden="true">✓</span> 登録・ログイン不要</li>
+  <li><span aria-hidden="true">✓</span> 仕組みを公開中</li>
+  <li class="anshin-more"><a href="#anshin">データの扱いをくわしく</a></li>
+</ul>
+<!--ANSHIN_STRIP_END-->
+<!--UPSELL_TOP_START--><p class="upsell-top no-print" id="upsellTop">このページは無料のまま使えます。機能を増やしたい方は <a href="#pro-section">買い切り版(¥100・1回払い)<span aria-hidden="true"> ↓</span></a></p><!--UPSELL_TOP_END-->
+
+<main>
+<div class="layout">
+
+  <section class="card" id="entry-card">
+    <h2>① 大会名と参加者</h2>
+    <label class="field"><span class="lbl">大会名(空欄でもかまいません)</span><input type="text" id="inTitle" maxlength="40" placeholder="例: 第3回 社内ボウリング大会"></label>
+    <label class="field"><span class="lbl">日時・場所など(空欄でもかまいません)</span><input type="text" id="inSub" maxlength="50" placeholder="例: 11月3日(月) 市民体育館"></label>
+    <label class="field" for="inNames"><span class="lbl">参加者・チーム名(1行に1つ)</span><span class="hint">所属があるときは「名前,所属」と入れます(例: 山田太郎,北中)</span></label>
+    <textarea id="inNames" spellcheck="false" aria-describedby="countNote"></textarea>
+    <p class="hint" id="countNote" aria-live="polite"></p>
+    <div class="btn-row" style="margin-top:4px">
+      <button type="button" class="btn" id="clearNamesBtn">名前を全部消す</button>
+    </div>
+    <div class="row2" style="margin-top:12px">
+      <label class="field"><span class="lbl">人数を決めて仮の名前で埋める</span><input type="number" id="inCount" min="2" max="64" value="8" inputmode="numeric"><span class="hint">トーナメントは64人、総当たりは12チームまで</span></label>
+      <div class="field"><span class="lbl" aria-hidden="true">&nbsp;</span><button type="button" class="btn" id="fillBtn" style="width:100%;margin-top:5px">「チーム1」〜で埋める</button></div>
+    </div>
+  </section>
+
+  <section class="card" id="style-card">
+    <h2>② 形式と並べ方</h2>
+    <fieldset><legend>形式</legend>
+      <div class="seg">
+        <label><input type="radio" name="mode" value="ko" checked> トーナメント</label>
+        <label><input type="radio" name="mode" value="league"> 総当たり(リーグ戦)</label>
+      </div>
+    </fieldset>
+    <div id="koOpts">
+      <fieldset><legend>並べ方</legend>
+        <div class="seg">
+          <label><input type="radio" name="order" value="seed" checked> 入力した順(1行目=第1シード)</label>
+          <label><input type="radio" name="order" value="random"> ランダム抽選</label>
+        </div>
+        <span class="hint">人数が2・4・8・16・32・64でないときは、足りない分だけ上位のシードが1回戦なしになります。ランダム抽選では、1回戦なしになる人も抽選で決まります</span>
+      </fieldset>
+      <button type="button" class="btn" id="drawBtn">抽選する(やり直すときも)</button>
+      
+      <p class="status" id="drawSt" role="status"></p>
+      <fieldset style="margin-top:8px"><legend>表の形</legend>
+        <div class="seg">
+          <label><input type="radio" name="shape" value="lr" checked> 左右から中央へ</label>
+          <label><input type="radio" name="shape" value="one"> 左から右へ</label>
+        </div>
+      </fieldset>
+      <label class="chk"><input type="checkbox" id="inNum" checked> 試合番号を入れる</label>
+    </div>
+    <div id="leagueOpts" class="hidden">
+      <p class="fine">総当たりは2〜12チームまで。対戦表の右に、勝・敗・分・勝点・得失点差・順位の欄が入ります(無料版は空欄。手書きで記入できます)。</p>
+      <label class="chk"><input type="checkbox" id="inSched" checked> 対戦順(毎回全チームが1試合ずつ)も印刷する</label>
+    </div>
+    <div class="row2" style="margin-top:8px">
+      <label class="field"><span class="lbl">用紙</span>
+        <select id="inPaper">
+          <option value="A4L" selected>A4 横</option>
+          <option value="A4P">A4 縦</option>
+          <option value="A3L">A3 横</option>
+          <option value="A3P">A3 縦</option>
+        </select>
+      </label>
+      <label class="field"><span class="lbl">文字の大きさ</span>
+        <select id="inFontScale"><option value="1" selected>ふつう</option><option value="1.2">大きめ</option><option value="0.85">小さめ</option></select>
+      </label>
+    </div>
+    <a class="jump" href="#pv-card">見本と印刷へ ↓</a>
+  </section>
+
+  <section class="card" id="pv-card">
+    <h2>③ 見本を確かめて印刷</h2>
+    <div class="pv"><canvas id="cv" width="800" height="560" role="img" aria-label="トーナメント表の見本"></canvas></div>
+    <p class="note warn hidden" id="sizeNote"></p>
+    <div class="status" id="outSt" role="status"></div>
+    <div class="btn-row">
+      <button type="button" class="btn primary" id="printBtn">印刷する</button>
+      <button type="button" class="btn" id="pngBtn">画像で保存(コンビニ印刷にも)</button>
+    </div>
+    <p class="fine">パソコンは印刷画面で用紙を選び、倍率「100%」(「用紙に合わせる」はオフ)。コンビニでは、保存した画像を同じ大きさの用紙で印刷します。</p>
+    <p class="fine">子どもの大会や社内行事の表を、画像でSNS・LINE・掲示板に載せるときは、名字だけ・ニックネーム・チーム名にするなどご配慮ください。学校や団体の決まりがあれば、それに従ってください。</p>
+    <p class="fine" id="creditNote"></p>
+    <div id="schedBox" class="hidden"><h3 style="font-size:.95rem;margin:14px 0 0">対戦順</h3><ol class="sched" id="schedList"></ol></div>
+  </section>
+
+  <section class="card" id="res-card">
+    <h2>④ 結果を入れる</h2>
+    <p class="desc" id="resDesc"></p>
+    <label class="chk" id="thirdRow"><input type="checkbox" id="inThird"> 3位決定戦を入れる(準決勝で負けた2人)</label>
+    
+    <ul class="res-list" id="resList"></ul>
+    <p class="fine">入れた名前と結果は、このブラウザに保存されます(どこにも送信しません)。共用のパソコンでは、終わったら「最初からやり直す」で消してください。</p>
+    <div class="btn-row"><button type="button" class="btn" id="resClear">結果をすべて消す</button><button type="button" class="btn" id="resetAll">最初からやり直す</button></div>
+  </section>
+
+</div>
+
+  <section class="card" id="pro-section">
+    <h2>同じ所属を離す抽選・リーグ表の自動集計 <span class="badge">買い切り版 ¥100(税込)</span></h2>
+    <div class="locked-panel">
+      <p class="lead">学校・クラブ対抗の大会や、リーグ戦の集計もパソコンで。</p>
+      <p>このページの機能(トーナメントの結果入力・3位決定戦も)は無料でそのまま使えます。買い切り版(ダウンロード購入)では、次の機能が増えます:</p>
+      <ul class="feat-list">
+        <li><strong>同じ所属どうしを離して抽選</strong>: 「名前,所属」と入れると、同じ学校・クラブの人が早い回戦で当たらないよう、なるべく別の山に分けて抽選します</li>
+        <li><strong>リーグ表の結果を入れる</strong>: スコアを入れると、○●△・勝・敗・分・勝点(勝ち・引分けの点は変えられます)・得失点差・順位を自動で計算します(順位の決め方は大会の規定と違うことがあります)</li>
+        <li><strong>ツール名が入りません</strong>(無料版は用紙の右下に小さく入ります)</li>
+        <li><strong>パソコンで使うHTMLファイルです</strong>(スマホでの動作は保証していません)。ダブルクリックで開くだけ、ネットにつながっていなくても使えます</li>
+      </ul>
+<!--UPSELL_ASSURE_START--><ul class="upsell-assure" aria-label="買い切り版について"><li>¥100(税込)の1回払い・月額なし</li><li>パソコン向けのHTMLファイル(スマホでは開けない機種あり)</li><li>ネットにつながっていなくても動く</li><li>BOOTHで購入(クレジットカード・楽天ペイは手数料なし、コンビニ・銀行払いは別途手数料)</li></ul><!--UPSELL_ASSURE_END-->
+      <a class="buy-btn" href="https://uuhai0625.booth.pm/items/9006219" id="buyLink" target="_blank" rel="noopener">パソコン用の買い切り版を見る(BOOTH・新しいタブ)</a><!--UPSELL_TERMS_START--><p class="upsell-terms">販売者の情報・返品などの販売条件は、BOOTHの商品ページでご確認ください。BOOTHでの購入にはpixivのアカウントが必要です。</p><!--UPSELL_TERMS_END-->
+    </div>
+  </section>
+
+  <section class="card guide" id="guide">
+    <h2>トーナメント表の作り方</h2>
+    <h3>シード(1回戦なし)の決まり方</h3>
+    <ul>
+      <li>トーナメントは、人数が2・4・8・16・32・64のときに全員が1回戦から戦えます。それ以外の人数では、足りない分だけ「1回戦がない人(シード)」ができます。</li>
+      <li>このツールは、一般的なシードの並べ方(第1シードと第2シードが決勝まで当たらない並び)で、シードを上下の山に散らして配置します。</li>
+      <li>例: 6人なら8人の表になり、第1・第2シードの2人が1回戦なし。試合数は全部で5試合(人数−1)です。</li>
+    </ul>
+    <h3>総当たり(リーグ戦)</h3>
+    <ul>
+      <li>全員が1回ずつ対戦します。試合数は 人数×(人数−1)÷2。8チームなら28試合です。</li>
+      <li>「対戦順」の「第1節」は1巡目のこと。毎回全チーム(奇数のときは1チームが休み)が1試合ずつするように組んだ順番です。</li>
+      <li>順位(買い切り版の自動計算)は 勝点→得失点差→総得点 の順で並べ、それでも同じなら同じ順位にします。直接対決の結果や抽選、勝率で決める競技など、大会ごとの決まりとは違うことがあります。試合が残っているあいだの順位は途中経過です。正式な順位は大会の規定で決めてください。</li>
+    </ul>
+    <h3>よくある質問</h3>
+    <ul>
+      <li><strong>抽選は公平?</strong> 暗号用の乱数(crypto.getRandomValues)を使って並べ替えます。人数が半端なときは、シード(1回戦なし)になる人も抽選で決まります。何度でも引き直せるので、大事な大会では参加者の前でボタンを1回だけ押すか、くじ引きで決めた順を「入力した順」で入れてください。</li>
+      <li><strong>入れた名前はどこかに送られる?</strong> 送られません。すべてこのブラウザの中で処理し、次に開いたときのためにこのブラウザに保存します。</li>
+    </ul>
+  </section>
+
+</main>
+
+<!--ANSHIN_START-->
+<section class="anshin" id="anshin" aria-labelledby="anshin-title">
+  <h2 id="anshin-title">データの扱いについて</h2>
+  <p>このページには、入力した内容を受け取る仕組みがありません。入力した文字や数字は、あなたのスマホやパソコンの中だけで処理されます。</p>
+  <ul>
+    <li>会員登録・ログイン・メールアドレスの入力はありません。</li>
+    <li>自分で確かめたい方へ: ページを開いたあと機内モードにしても、そのまま使えます。</li>
+  </ul>
+  <details>
+    <summary>もっとくわしく(保存・アクセス解析・公開について)</summary>
+    <ul>
+      <li>保存されるデータは、この端末のこのブラウザの中にだけ残ります(localStorage・sessionStorage)。共用のパソコンでは使い終わったら消してください。</li>
+      <li>アクセス解析(Google Analytics)のため、見たページのURL・参照元・端末やブラウザの種類・おおよその地域(IPアドレスから推定)・Cookieの識別子・BOOTHへのリンクのクリック・どのボタンを押したか(回数や選んだ設定を含む)がGoogleに送られます。目的は利用状況の把握です。入力した文字や画像は送りません。(<a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Googleによるデータの使用</a>/<a href="https://tools.google.com/dlpage/gaoptout?hl=ja" target="_blank" rel="noopener">計測を止めるアドオン</a>。止めてもツールはそのまま使えます)</li>
+      <li>このツールの結果や作成物は目安です。入稿・契約・販売などの前には、印刷所や公式の情報でご確認ください。</li>
+      <li>処理の中身はすべて公開しています(詳しい方向け: <a href="https://github.com/uuhai0625/tournament-hyo" target="_blank" rel="noopener">GitHub</a>)。</li>
+    </ul>
+  </details>
+  <p class="anshin-meta">作っている人: ウーハイ(個人開発)/不具合・ご質問は<a href="https://x.com/uuhai0625" target="_blank" rel="noopener">X(@uuhai0625)</a>へ/<a href="https://uuhai0625.github.io/" target="_blank" rel="noopener">ほかのツール</a>/この説明の更新日: 2026-10-13</p>
+</section>
+<!--ANSHIN_END-->
+
+<footer>
+  <p id="privacyNote">入力した内容はどこにも送信されません(すべてこのブラウザの中で処理します)。</p>
+  <p><a href="https://uuhai0625.booth.pm/" target="_blank" rel="noopener">他のツールも見る(BOOTHショップ)</a></p>
+  <p>不具合・ご要望は X <a href="https://x.com/uuhai0625" target="_blank" rel="noopener">@uuhai0625</a> まで。</p>
+  <p class="related-tools no-print">関連する無料ツール: <a href="https://uuhai0625.github.io/bingo-card-maker/" target="_blank" rel="noopener">ビンゴカードメーカー</a> ・ <a href="https://uuhai0625.github.io/#free-tools">ツール一覧</a></p>
+</footer>
+
+<div id="printArea"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var EDITION = "free"; // "full" で買い切り完全版
+
+  function track(name, params) {
+    if (!window.dataLayer) return;
+    (function () { window.dataLayer.push(arguments); })("event", name, params || {});
+  }
+  var $ = function (id) { return document.getElementById(id); };
+  function setSt(id, msg, err) { var e = $(id); if (!e) return; e.textContent = msg; e.classList.toggle("err", !!err); }
+  function radio(name) { var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : ""; }
+  function setRadio(name, v) { var e = document.querySelector('input[name="' + name + '"][value="' + v + '"]'); if (e) e.checked = true; }
+  function checked(id) { var e = $(id); return !!(e && e.checked); }
+  function num(id, d) { var e = $(id); if (!e) return d; var v = parseFloat(e.value); return isFinite(v) ? v : d; }
+
+  var CREDIT = true;
+  var STORE = "uuhai-tournament-hyo-v1" + (EDITION === "full" ? "-full" : "");
+  
+  var PAPERS = { A4L: [297, 210, "A4横"], A4P: [210, 297, "A4縦"], A3L: [420, 297, "A3横"], A3P: [297, 420, "A3縦"] };
+  var FONT = '"Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif';
+  var MAXKO = 64, MAXLG = 12;
+
+  // ===== 参加者(「名前,所属」も可) =====
+  var entryInfo = { cut: false, dup: false, raw: 0 };
+  function entries() {
+    var seen = {}, out = [];
+    entryInfo = { cut: false, dup: false, raw: 0 };
+    $("inNames").value.split(/\r?\n/).forEach(function (line) {
+      var t = line.trim(); if (!t) return;
+      entryInfo.raw++;
+      var m = t.split(/[,，、\t]/), nm = m[0].trim(), club = (m.slice(1).join(" ") || "").trim();
+      if (!nm) return;
+      if (Array.from(nm).length > 20) { nm = Array.from(nm).slice(0, 20).join(""); entryInfo.cut = true; }
+      var base = nm, c = 1;
+      while (seen[nm]) { c++; nm = base + "(" + c + ")"; entryInfo.dup = true; }
+      seen[nm] = true;
+      out.push({ name: nm, club: club });
+    });
+    return out;
+  }
+  function rnd(n) { var r = new Uint32Array(1); window.crypto.getRandomValues(r); return r[0] % n; }
+  function shuffleArr(a) { for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  // 一般的なシード順(N=8 → 1,8,4,5,2,7,3,6)
+  function seeding(N) {
+    var s = [1];
+    while (s.length < N) { var m = s.length * 2 + 1, t = []; s.forEach(function (x) { t.push(x, m - x); }); s = t; }
+    return s;
+  }
+  function pk(a, b) { return a < b ? a + "\u0001" + b : b + "\u0001" + a; }
+
+  // ===== 保存される状態 =====
+  var results = { ko: {}, th: {}, lg: {} }; // 組み合わせ(名前の組)ごと。並びが変わっても同じ2人の試合にだけ効く
+  var slots = null, slotsKey = "";          // ランダム抽選の結果(枠ごとの名前)
+
+  // ランダム抽選: 枠を半分ずつに分けながら入れる。同じ所属はなるべく別の山へ
+  function drawSlots(list, N, sep) {
+    var seeds = seeding(N), n = list.length, real = seeds.map(function (s) { return s <= n; }), out = new Array(N).fill(null);
+    var players = shuffleArr(list.map(function (e) { return { name: e.name, club: sep && e.club ? "c:" + e.club : "n:" + e.name }; }));
+    function cap(lo, hi) { var c = 0; for (var i = lo; i < hi; i++) if (real[i]) c++; return c; }
+    (function place(ps, lo, hi) {
+      if (!ps.length) return;
+      if (hi - lo === 1) { out[lo] = ps[0].name; return; }
+      var mid = (lo + hi) / 2, capL = cap(lo, mid), capR = cap(mid, hi), groups = {}, L = [], R = [];
+      ps.forEach(function (p) { (groups[p.club] = groups[p.club] || []).push(p); });
+      var gs = shuffleArr(Object.keys(groups).map(function (k) { return groups[k]; }));
+      gs.sort(function (a, b) { return b.length - a.length; });
+      gs.forEach(function (g) {
+        var cl = 0, cr = 0;
+        g.forEach(function (p) {
+          var left;
+          if (L.length >= capL) left = false; else if (R.length >= capR) left = true;
+          else if (cl !== cr) left = cl < cr;
+          else { var fl = L.length / capL, fr = R.length / capR; left = fl === fr ? rnd(2) === 0 : fl < fr; }
+          if (left) { L.push(p); cl++; } else { R.push(p); cr++; }
+        });
+      });
+      place(L, lo, mid); place(R, mid, hi);
+    })(players, 0, N);
+    return out;
+  }
+  function drawKey(list, sep) { return list.map(function (e) { return e.name + "\u0002" + (sep ? e.club : ""); }).sort().join("\u0001"); }
+
+  // ===== トーナメントの木 =====
+  function buildKO(list, forceDraw) {
+    var n = list.length, N = 1; while (N < n) N *= 2; if (N < 2) N = 2;
+    var sep = EDITION === "full" && checked("inSep"), cur;
+    if (radio("order") === "random") {
+      var key = N + "|" + drawKey(list, sep);
+      if (forceDraw || !slots || slotsKey !== key) { slots = drawSlots(list, N, sep); slotsKey = key; }
+      cur = slots;
+    } else {
+      cur = seeding(N).map(function (sd) { return sd <= n ? list[sd - 1].name : null; });
+    }
+    var leaves = cur.map(function (nm, i) { return { leaf: true, name: nm, bye: nm === null, ent: nm, r: 0, i: i }; });
+    var level = leaves, r = 0, rounds = [leaves], no = 0;
+    while (level.length > 1) {
+      r++; var next = [];
+      for (var i = 0; i < level.length; i += 2) {
+        var a = level[i], b = level[i + 1], nd = { kids: [a, b], r: r, i: i / 2 };
+        nd.bye = a.bye && b.bye; nd.real = !a.bye && !b.bye;
+        a.up = nd; b.up = nd;
+        next.push(nd);
+      }
+      rounds.push(next); level = next;
+    }
+    rounds.forEach(function (lv) { lv.forEach(function (nd) { if (nd.real) nd.no = ++no; }); });
+    var T = { root: level[0], N: N, R: r, rounds: rounds, matches: no, leaves: leaves };
+    T.root.final = true;
+    resolve(T.root);
+    var semis = T.R >= 2 ? T.root.kids : [];
+    T.thirdOk = semis.length === 2 && semis[0].real && semis[1].real;
+    T.third = T.thirdOk && checked("inThird");
+    if (T.third) {
+      T.losers = semis.map(function (s) { return s.winner === null ? null : s.kids[1 - s.winner].ent; });
+      T.thirdRes = null;
+      if (T.losers[0] && T.losers[1]) { var tr = results.th[pk(T.losers[0], T.losers[1])]; if (tr && (tr.w === T.losers[0] || tr.w === T.losers[1])) T.thirdRes = tr; }
+    }
+    return T;
+  }
+  function resolve(nd) {
+    if (nd.leaf) return nd.ent;
+    var a = resolve(nd.kids[0]), b = resolve(nd.kids[1]);
+    nd.winner = null; nd.ent = null; nd.res = null;
+    if (nd.kids[0].bye) { nd.winner = 1; nd.ent = b; return b; }
+    if (nd.kids[1].bye) { nd.winner = 0; nd.ent = a; return a; }
+    if (a && b) {
+      var res = results.ko[pk(a, b)];
+      nd.res = res || null;
+      if (res && (res.w === a || res.w === b)) { nd.winner = res.w === a ? 0 : 1; nd.ent = res.w; }
+    }
+    return nd.ent;
+  }
+  // 子から親への線が赤(勝ち上がり)か
+  function redEdge(child, parent) {
+    if (parent.winner === null || parent.kids[parent.winner] !== child) return false;
+    if (parent.real) return true;
+    return parent.up ? redEdge(parent, parent.up) : false;
+  }
+  function scoreOf(nd, j) { var e = nd.kids[j].ent; return nd.res && nd.res.s && e ? (nd.res.s[e] || "").trim() : ""; }
+
+  // ===== 描画 =====
+  var curK = 1;
+  function fitText(ctx, text, maxW, size, weight, minSize) {
+    var s = size, lo = minSize || Math.max(4, 1.4 * curK);
+    ctx.font = (weight || "") + " " + s + "px " + FONT;
+    while (s > lo && ctx.measureText(text).width > maxW) { s = Math.max(lo, s * 0.92); ctx.font = (weight || "") + " " + s + "px " + FONT; }
+    return s;
+  }
+  function drawKO(ctx, T, W, H, k, opt) {
+    var fsc = opt.fontScale, m = 10 * k, lr = opt.shape === "lr";
+    var top = opt.headH + m + (lr ? 9 * k : 0), bottom = H - m - (T.third ? 26 * k : 0) - 4 * k;
+    var rowsPerSide = lr ? T.N / 2 : T.N, rowH = (bottom - top) / rowsPerSide;
+    var nameFs = Math.min(rowH * 0.62, 6 * k * fsc), longest = 0;
+    ctx.font = nameFs + "px " + FONT;
+    T.leaves.forEach(function (l) { if (l.name) longest = Math.max(longest, ctx.measureText(l.name).width); });
+    var sideW = lr ? W / 2 : W - m;
+    var nameW = Math.min(Math.max(longest + 3 * k, 18 * k), (lr ? 0.32 : 0.34) * (sideW - m));
+    var champW = lr ? 16 * k : Math.max(42 * k, nameW * 0.9);
+    var depth = lr ? T.R - 1 : T.R, colW = (sideW - m - nameW - champW) / Math.max(1, depth);
+    var lw = Math.max(1, 0.35 * k), lwRed = Math.max(2, 0.9 * k);
+    T.leaves.forEach(function (l, i) {
+      var right = lr && i >= T.N / 2, row = lr ? i % (T.N / 2) : i;
+      l.y = top + rowH * (row + 0.5); l.side = right ? -1 : 1;
+      l.x = right ? W - m - nameW : m + nameW;
+    });
+    (function place(nd) {
+      if (nd.leaf) return;
+      place(nd.kids[0]); place(nd.kids[1]);
+      nd.side = nd.kids[0].side;
+      if (nd.final && lr) { nd.x = W / 2; nd.y = (nd.kids[0].y + nd.kids[1].y) / 2; return; }
+      nd.x = nd.side > 0 ? m + nameW + nd.r * colW : W - m - nameW - nd.r * colW;
+      nd.y = nd.kids[0].bye ? nd.kids[1].y : nd.kids[1].bye ? nd.kids[0].y : (nd.kids[0].y + nd.kids[1].y) / 2;
+    })(T.root);
+    var minName = nameFs;
+    T.leaves.forEach(function (l) {
+      if (!l.name) return;
+      var red = l.up && redEdge(l, l.up);
+      ctx.fillStyle = red ? "#c4161c" : "#1a1a1a"; ctx.textBaseline = "middle";
+      minName = Math.min(minName, fitText(ctx, l.name, nameW - 2.5 * k, nameFs, red ? "bold" : ""));
+      if (l.side > 0) { ctx.textAlign = "right"; ctx.fillText(l.name, l.x - 1.5 * k, l.y); }
+      else { ctx.textAlign = "left"; ctx.fillText(l.name, l.x + 1.5 * k, l.y); }
+    });
+    var segs = [];
+    (function edges(nd) {
+      if (nd.leaf) return;
+      nd.kids.forEach(function (c) {
+        if (c.bye) return;
+        var red = redEdge(c, nd);
+        segs.push([c.x, c.y, nd.x, c.y, red]);
+        if (c.y !== nd.y) segs.push([nd.x, c.y, nd.x, nd.y, red]);
+        edges(c);
+      });
+    })(T.root);
+    ctx.lineCap = "square";
+    [false, true].forEach(function (pass) {
+      ctx.strokeStyle = pass ? "#d0191f" : "#1a1a1a"; ctx.lineWidth = pass ? lwRed : lw;
+      segs.forEach(function (s) { if (s[4] !== pass) return; ctx.beginPath(); ctx.moveTo(s[0], s[1]); ctx.lineTo(s[2], s[3]); ctx.stroke(); });
+    });
+    // 優勝
+    var champ = T.root.winner !== null && T.root.real ? T.root.ent : null, cx = T.root.x, cy = T.root.y, label = champ ? "優勝 " + champ : "優勝";
+    ctx.strokeStyle = champ ? "#d0191f" : "#1a1a1a"; ctx.lineWidth = champ ? lwRed : lw; ctx.beginPath();
+    if (lr) {
+      var ey = top - 2 * k; ctx.moveTo(cx, cy); ctx.lineTo(cx, ey); ctx.stroke();
+      ctx.fillStyle = "#1a1a1a"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+      fitText(ctx, label, W * 0.45, Math.min(nameFs * 1.3, 6.5 * k), "bold"); ctx.fillText(label, cx, ey - 1 * k);
+    } else {
+      var ex = cx + 6 * k; ctx.moveTo(cx, cy); ctx.lineTo(ex, cy); ctx.stroke();
+      ctx.fillStyle = "#1a1a1a"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      fitText(ctx, label, W - m - ex - 1.5 * k, Math.min(nameFs * 1.3, 6.5 * k), "bold"); ctx.fillText(label, ex + 1.5 * k, cy);
+    }
+    // 試合番号・スコア
+    var smallFs = Math.max(nameFs * 0.62, 2 * k);
+    (function labels(nd) {
+      if (nd.leaf) return;
+      labels(nd.kids[0]); labels(nd.kids[1]);
+      if (!nd.real) return;
+      if (opt.num && nd.no) {
+        ctx.font = smallFs + "px " + FONT; ctx.fillStyle = "#555";
+        if (nd.final && lr) { ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillText(nd.no, nd.x, nd.y + 1 * k); }
+        else { ctx.textAlign = nd.side > 0 ? "left" : "right"; ctx.textBaseline = "bottom"; ctx.fillText(nd.no, nd.x + (nd.side > 0 ? 1.2 : -1.2) * k, nd.y - 0.6 * k); }
+      }
+      [0, 1].forEach(function (j) {
+        var sc = scoreOf(nd, j), c = nd.kids[j]; if (!sc) return;
+        ctx.font = "bold " + smallFs + "px " + FONT; ctx.fillStyle = "#333"; ctx.textBaseline = "bottom";
+        var sd = nd.final && lr ? c.side : nd.side;
+        ctx.textAlign = sd > 0 ? "right" : "left"; ctx.fillText(sc, nd.x + (sd > 0 ? -1.2 : 1.2) * k, c.y - 0.6 * k);
+      });
+    })(T.root);
+    // 3位決定戦
+    if (T.third) {
+      var tw = Math.min(90 * k, W * 0.42), tx = W - m - tw, ty = H - m - 24 * k, th = 16 * k, tl = [ty + th * 0.25, ty + th * 0.75], jx = tx + tw * 0.62;
+      var tr = T.thirdRes, done = !!tr;
+      ctx.fillStyle = "#1a1a1a"; ctx.font = "bold " + (nameFs * 0.9) + "px " + FONT; ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+      ctx.fillText("3位決定戦", tx, ty - 1 * k);
+      T.losers.forEach(function (nm, j) {
+        var red = done && tr.w === nm, txt = nm || "準決勝の負け";
+        ctx.fillStyle = red ? "#c4161c" : nm ? "#1a1a1a" : "#888"; ctx.textBaseline = "middle"; ctx.textAlign = "right";
+        fitText(ctx, txt, tw * 0.55, nameFs * 0.85, red ? "bold" : ""); ctx.fillText(txt, tx + tw * 0.55, tl[j]);
+        ctx.strokeStyle = red ? "#d0191f" : "#1a1a1a"; ctx.lineWidth = red ? lwRed : lw;
+        ctx.beginPath(); ctx.moveTo(tx + tw * 0.57, tl[j]); ctx.lineTo(jx, tl[j]); ctx.lineTo(jx, ty + th / 2); ctx.stroke();
+        var sc = tr && tr.s && nm ? (tr.s[nm] || "").trim() : "";
+        if (sc) { ctx.font = "bold " + smallFs + "px " + FONT; ctx.fillStyle = "#333"; ctx.textAlign = "right"; ctx.textBaseline = "bottom"; ctx.fillText(sc, jx - 1 * k, tl[j] - 0.5 * k); }
+      });
+      ctx.strokeStyle = done ? "#d0191f" : "#1a1a1a"; ctx.lineWidth = done ? lwRed : lw;
+      ctx.beginPath(); ctx.moveTo(jx, ty + th / 2); ctx.lineTo(jx + tw * 0.08, ty + th / 2); ctx.stroke();
+      var t3 = done ? "3位 " + tr.w : "3位";
+      ctx.fillStyle = "#1a1a1a"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      fitText(ctx, t3, tw * 0.28, nameFs * 0.85, "bold"); ctx.fillText(t3, jx + tw * 0.1, ty + th / 2);
+    }
+    return { nameMm: minName / k };
+  }
+
+  // ===== 総当たり =====
+  function intScore(v) { v = (v || "").trim(); return /^\d{1,3}$/.test(v) ? parseInt(v, 10) : null; }
+  function leagueStats(list) {
+    var n = list.length, st = list.map(function (e) { return { name: e.name, w: 0, l: 0, d: 0, pt: 0, gf: 0, ga: 0, played: 0 }; });
+    var cell = {}, pw = Math.max(0, Math.round(num("inPtW", 3))), pd = Math.max(0, Math.round(num("inPtD", 1))), any = false;
+    if (EDITION === "full") for (var i = 0; i < n; i++) for (var j = i + 1; j < n; j++) {
+      var r = results.lg[pk(list[i].name, list[j].name)]; if (!r || !r.s) continue;
+      var a = intScore(r.s[list[i].name]), b = intScore(r.s[list[j].name]);
+      if (a === null || b === null) continue;
+      any = true;
+      cell[i + "-" + j] = [a, b]; cell[j + "-" + i] = [b, a];
+      st[i].gf += a; st[i].ga += b; st[j].gf += b; st[j].ga += a; st[i].played++; st[j].played++;
+      if (a > b) { st[i].w++; st[j].l++; st[i].pt += pw; } else if (a < b) { st[j].w++; st[i].l++; st[j].pt += pw; } else { st[i].d++; st[j].d++; st[i].pt += pd; st[j].pt += pd; }
+    }
+    // 順位は試合をしたチームの中だけで(勝点→得失点差→総得点、同じなら同順位)
+    var idx = st.map(function (_, i) { return i; }).filter(function (i) { return st[i].played; })
+      .sort(function (x, y) { var A = st[x], B = st[y]; return B.pt - A.pt || (B.gf - B.ga) - (A.gf - A.ga) || B.gf - A.gf; });
+    idx.forEach(function (x, pos) {
+      var p = pos > 0 ? st[idx[pos - 1]] : null, s = st[x];
+      s.rank = p && p.pt === s.pt && (p.gf - p.ga) === (s.gf - s.ga) && p.gf === s.gf ? p.rank : pos + 1;
+    });
+    return { st: st, cell: cell, any: any };
+  }
+  function roundRobin(n) {
+    var ids = []; for (var i = 0; i < n; i++) ids.push(i);
+    if (n % 2) ids.push(-1);
+    var m = ids.length, rounds = [];
+    for (var r = 0; r < m - 1; r++) {
+      var pairs = [];
+      for (i = 0; i < m / 2; i++) { var a = ids[i], b = ids[m - 1 - i]; if (a >= 0 && b >= 0) pairs.push(r % 2 ? [b, a] : [a, b]); else pairs.push([a >= 0 ? a : b, -1]); }
+      rounds.push(pairs);
+      ids.splice(1, 0, ids.pop());
+    }
+    return rounds;
+  }
+  function roundText(list, pairs, r) {
+    var t = "第" + (r + 1) + "節  " + pairs.filter(function (p) { return p[1] >= 0; }).map(function (p) { return list[p[0]].name + "−" + list[p[1]].name; }).join("、");
+    var rest = pairs.filter(function (p) { return p[1] < 0; })[0];
+    return t + (rest ? "(休み: " + list[rest[0]].name + ")" : "");
+  }
+  function wrapLines(ctx, text, maxW) {
+    var parts = text.split(/(?<=、)/), lines = [], cur = "";
+    parts.forEach(function (p) { if (cur && ctx.measureText(cur + p).width > maxW) { lines.push(cur); cur = "   " + p; } else cur += p; });
+    if (cur) lines.push(cur);
+    return lines;
+  }
+  function drawLeague(ctx, list, W, H, k, opt) {
+    var n = list.length, m = 10 * k, top = opt.headH + m, L = leagueStats(list), availW = W - 2 * m, info = { schedOmitted: false };
+    // 対戦順の行(入りきらなければ文字を小さく、それでも無理なら印刷しない)
+    var schedLines = [], sfs = 0, lh = 0, schedH = 0;
+    if (opt.sched) {
+      var rr = roundRobin(n), maxH = (H - top - m) * 0.42;
+      for (var f = 3.4; f >= 2.4; f -= 0.2) {
+        sfs = f * k * opt.fontScale; lh = sfs * 1.45; ctx.font = sfs + "px " + FONT; schedLines = [];
+        rr.forEach(function (pairs, r) { schedLines = schedLines.concat(wrapLines(ctx, roundText(list, pairs, r), availW)); });
+        schedH = (schedLines.length + 1) * lh + 4 * k;
+        if (schedH <= maxH) break;
+      }
+      if (schedH > maxH) { schedLines = []; schedH = 0; info.schedOmitted = true; }
+    }
+    var extra = ["勝", "敗", "分", "勝点", "得失点差", "順位"], exw = [0.55, 0.55, 0.55, 0.7, 0.95, 0.7], exSum = exw.reduce(function (a, b) { return a + b; }, 0);
+    var availH = H - top - m - schedH;
+    var cellH = Math.min(availH / (n + 1), 16 * k), nameW = Math.min(availW * 0.22, 44 * k);
+    var cellW = (availW - nameW) / (n + exSum);
+    var x0 = m, y0 = top, fs = Math.min(cellH * 0.42, cellW * 0.3, 5.5 * k * opt.fontScale), lw = Math.max(1, 0.3 * k);
+    var exX = [x0 + nameW + n * cellW]; exw.forEach(function (w, j) { exX.push(exX[j] + w * cellW); });
+    var totalW = exX[exX.length - 1] - x0;
+    for (var i = 0; i < n; i++) { ctx.fillStyle = "#d9d9d9"; ctx.fillRect(x0 + nameW + i * cellW, y0 + (i + 1) * cellH, cellW, cellH); }
+    ctx.fillStyle = "#eef3f0"; ctx.fillRect(x0, y0, totalW, cellH);
+    ctx.strokeStyle = "#1a1a1a"; ctx.lineWidth = lw;
+    for (i = 0; i <= n + 1; i++) { ctx.beginPath(); ctx.moveTo(x0, y0 + i * cellH); ctx.lineTo(x0 + totalW, y0 + i * cellH); ctx.stroke(); }
+    var xs = [x0, x0 + nameW]; for (i = 1; i <= n; i++) xs.push(x0 + nameW + i * cellW); exX.slice(1).forEach(function (x) { xs.push(x); });
+    xs.forEach(function (x) { ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + (n + 1) * cellH); ctx.stroke(); });
+    ctx.fillStyle = "#1a1a1a"; ctx.textBaseline = "middle";
+    list.forEach(function (e, i) {
+      ctx.textAlign = "left"; fitText(ctx, e.name, nameW - 3 * k, fs * 1.1, "bold"); ctx.fillText(e.name, x0 + 1.5 * k, y0 + (i + 1.5) * cellH);
+      ctx.textAlign = "center"; fitText(ctx, e.name, cellW - 2 * k, fs, "bold"); ctx.fillText(e.name, x0 + nameW + (i + 0.5) * cellW, y0 + 0.5 * cellH);
+    });
+    extra.forEach(function (t, j) { ctx.textAlign = "center"; fitText(ctx, t, exw[j] * cellW - 1.5 * k, fs, "bold"); ctx.fillText(t, (exX[j] + exX[j + 1]) / 2, y0 + 0.5 * cellH); });
+    if (L.any) {
+      for (i = 0; i < n; i++) for (var j = 0; j < n; j++) {
+        var c = L.cell[i + "-" + j]; if (!c || i === j) continue;
+        var mark = c[0] > c[1] ? "○" : c[0] < c[1] ? "●" : "△", txt = mark + " " + c[0] + "-" + c[1];
+        ctx.fillStyle = c[0] > c[1] ? "#c4161c" : "#1a1a1a"; ctx.textAlign = "center";
+        fitText(ctx, txt, cellW - 2 * k, fs, "bold"); ctx.fillText(txt, x0 + nameW + (j + 0.5) * cellW, y0 + (i + 1.5) * cellH);
+      }
+      L.st.forEach(function (s, i) {
+        if (!s.played) return;
+        var gd = s.gf - s.ga, vals = [s.w, s.l, s.d, s.pt, (gd > 0 ? "+" : "") + gd, s.rank];
+        vals.forEach(function (v, j) { ctx.fillStyle = "#1a1a1a"; ctx.textAlign = "center"; fitText(ctx, String(v), exw[j] * cellW - 1.5 * k, fs, j === 5 ? "bold" : ""); ctx.fillText(String(v), (exX[j] + exX[j + 1]) / 2, y0 + (i + 1.5) * cellH); });
+      });
+    }
+    if (schedLines.length) {
+      var sy = y0 + (n + 1) * cellH + 4 * k;
+      ctx.fillStyle = "#1a1a1a"; ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.font = "bold " + sfs + "px " + FONT;
+      ctx.fillText("対戦順", x0, sy);
+      ctx.font = sfs + "px " + FONT;
+      schedLines.forEach(function (ln, r) { ctx.fillText(ln, x0, sy + lh * (r + 1)); });
+    }
+    return info;
+  }
+
+  // ===== 用紙1枚 =====
+  function conf() {
+    var all = entries(), mode = radio("mode");
+    return { all: all, list: all.slice(0, mode === "league" ? MAXLG : MAXKO), mode: mode, shape: radio("shape"), num: checked("inNum"), paper: PAPERS[$("inPaper").value] || PAPERS.A4L, paperKey: $("inPaper").value,
+      title: $("inTitle").value.trim(), sub: $("inSub").value.trim(), fontScale: +$("inFontScale").value || 1, sched: checked("inSched") };
+  }
+  function render(C, dpi, T) {
+    var P = C.paper, k = dpi / 25.4, cv = document.createElement("canvas"), info = {};
+    curK = k;
+    cv.width = Math.round(P[0] * k); cv.height = Math.round(P[1] * k);
+    var ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    if (!ctx) return null;
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+    var headH = 0;
+    if (C.title || C.sub) {
+      ctx.fillStyle = "#1a1a1a"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+      var y = 9 * k;
+      if (C.title) { var ts = fitText(ctx, C.title, W - 30 * k, 8 * k * C.fontScale, "bold"); ctx.fillText(C.title, W / 2, y); y += ts * 1.35; }
+      if (C.sub) { var ss = fitText(ctx, C.sub, W - 30 * k, 4.2 * k * C.fontScale, ""); ctx.fillStyle = "#444"; ctx.fillText(C.sub, W / 2, y); y += ss * 1.4; }
+      headH = y - 6 * k;
+    }
+    if (C.list.length >= 2) {
+      if (C.mode === "league") info = drawLeague(ctx, C.list, W, H, k, { headH: headH, fontScale: C.fontScale, sched: C.sched });
+      else info = drawKO(ctx, T, W, H, k, { headH: headH, shape: C.shape, num: C.num, fontScale: C.fontScale });
+    } else {
+      ctx.fillStyle = "#888"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = (6 * k) + "px " + FONT;
+      ctx.fillText("参加者を2人以上入れてください", W / 2, H / 2);
+    }
+    if (CREDIT) { ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.font = (2.2 * k) + "px sans-serif"; ctx.textAlign = "right"; ctx.textBaseline = "alphabetic"; ctx.fillText("トーナメント表作成ツール", W - 6 * k, H - 5 * k); }
+    cv._info = info;
+    return cv;
+  }
+
+  // ===== 結果の入力欄 =====
+  function el(tag, attrs, text) { var e = document.createElement(tag); for (var a in attrs) e.setAttribute(a, attrs[a]); if (text != null) e.textContent = text; return e; }
+  function safeId(s) { return s.replace(/[^\w]/g, function (c) { return c.charCodeAt(0).toString(36); }); }
+  var listKey = "";
+  function buildResults(C, T) {
+    var ul = $("resList"), focusId = document.activeElement && document.activeElement.id;
+    ul.textContent = "";
+    var ko = C.mode === "ko";
+    $("thirdRow").classList.toggle("hidden", !ko || !(T && T.thirdOk));
+    if ($("ptRow")) $("ptRow").classList.toggle("hidden", ko);
+    $("resDesc").textContent = ko ? "勝ったほうを選ぶと、勝ち上がりの線が赤くなり、次の試合に名前が進みます。スコアは空欄でもかまいません(差がつくスコアを入れると勝者も自動で入ります)。"
+      : EDITION === "full" ? "両チームのスコアを入れると、○●△・勝点・順位を計算します。勝ち負けだけのときは 1-0 のように入れてください。スコアは0以上の整数です。"
+      : "リーグ表は印刷して手書きで記入できます。スコアを入れて勝点・順位を自動で計算する機能は買い切り版です。";
+    if (C.list.length < 2) return;
+    function scoreInputs(store, tag, key, names, label) {
+      var w = el("span", { class: "rowx" });
+      names.forEach(function (nm, j) {
+        var inp = el("input", { type: "text", id: "s_" + tag + "_" + safeId(key) + "_" + j, maxlength: "6", inputmode: "numeric", "aria-label": label + " " + (nm || (j ? "下" : "上")) + "のスコア" });
+        var r = store[key]; inp.value = r && r.s && nm ? r.s[nm] || "" : "";
+        inp.disabled = !nm;
+        inp.addEventListener("input", function () {
+          var rr = store[key] || (store[key] = { w: null, s: {} }); rr.s = rr.s || {}; rr.s[nm] = inp.value;
+          if (tag !== "lg" && !rr.w) {
+            var a = intScore(rr.s[names[0]]), b = intScore(rr.s[names[1]]);
+            if (a !== null && b !== null && a !== b) { rr.w = a > b ? names[0] : names[1]; refresh({ keepSt: true }); return; }
+          }
+          later();
+        });
+        if (j === 1) w.appendChild(el("span", { class: "vs" }, "−"));
+        w.appendChild(inp);
+      });
+      return w;
+    }
+    function winnerSelect(store, tag, key, names, label) {
+      var sel = el("select", { id: "w_" + tag + "_" + safeId(key), "aria-label": label + "の勝者" });
+      var ok = names[0] && names[1], r = store[key];
+      sel.appendChild(el("option", { value: "" }, ok ? "勝者を選ぶ" : "前の試合の結果待ち"));
+      if (ok) names.forEach(function (nm) { sel.appendChild(el("option", { value: nm }, nm + " の勝ち")); });
+      sel.disabled = !ok;
+      sel.value = ok && r && (r.w === names[0] || r.w === names[1]) ? r.w : "";
+      sel.addEventListener("change", function () { var rr = store[key] || (store[key] = { w: null, s: {} }); rr.w = sel.value || null; refresh({ keepSt: true }); });
+      return sel;
+    }
+    if (ko) {
+      var rname = function (r) { return r === T.R ? "決勝" : r === T.R - 1 ? "準決勝" : r === T.R - 2 && T.R >= 3 ? "準々決勝" : r + "回戦"; };
+      T.rounds.forEach(function (lv, r) {
+        if (!r) return;
+        var ms = lv.filter(function (nd) { return nd.real; }); if (!ms.length) return;
+        ul.appendChild(el("li", { class: "rh" }, rname(r)));
+        ms.forEach(function (nd) {
+          var a = nd.kids[0].ent, b = nd.kids[1].ent, key = a && b ? pk(a, b) : "tbd" + nd.no, li = el("li"), label = "第" + nd.no + "試合";
+          li.appendChild(el("div", { class: "mt" }, label + (a && b ? "  " + a + " 対 " + b : "")));
+          var row = el("div", { class: "rowx" });
+          row.appendChild(winnerSelect(results.ko, "ko", key, [a, b], label));
+          row.appendChild(scoreInputs(results.ko, "ko", key, [a, b], label));
+          li.appendChild(row); ul.appendChild(li);
+        });
+      });
+      if (T.third) {
+        var ls = T.losers, key3 = ls[0] && ls[1] ? pk(ls[0], ls[1]) : "tbd3", li3 = el("li");
+        ul.appendChild(el("li", { class: "rh" }, "3位決定戦"));
+        li3.appendChild(el("div", { class: "mt" }, ls[0] && ls[1] ? ls[0] + " 対 " + ls[1] : "準決勝の結果待ち"));
+        var row3 = el("div", { class: "rowx" });
+        row3.appendChild(winnerSelect(results.th, "th", key3, ls, "3位決定戦"));
+        row3.appendChild(scoreInputs(results.th, "th", key3, ls, "3位決定戦"));
+        li3.appendChild(row3); ul.appendChild(li3);
+      }
+    } else if (EDITION === "full") {
+      roundRobin(C.list.length).forEach(function (pairs, r) {
+        ul.appendChild(el("li", { class: "rh" }, "第" + (r + 1) + "節"));
+        pairs.forEach(function (p) {
+          if (p[1] < 0) { ul.appendChild(el("li", { class: "mt" }, "休み: " + C.list[p[0]].name)); return; }
+          var A = C.list[p[0]].name, B = C.list[p[1]].name, li = el("li");
+          li.appendChild(el("div", { class: "mt" }, A + " 対 " + B));
+          li.appendChild(scoreInputs(results.lg, "lg", pk(A, B), [A, B], "第" + (r + 1) + "節 " + A + "対" + B));
+          ul.appendChild(li);
+        });
+      });
+    }
+    if (focusId && $(focusId)) $(focusId).focus();
+  }
+
+  // ===== 保存と読み込み(このブラウザだけ) =====
+  function save() {
+    try {
+      localStorage.setItem(STORE, JSON.stringify({ v: 1, names: $("inNames").value, title: $("inTitle").value, sub: $("inSub").value, mode: radio("mode"), order: radio("order"), shape: radio("shape"),
+        num: checked("inNum"), paper: $("inPaper").value, fs: $("inFontScale").value, sched: checked("inSched"), third: checked("inThird"), sep: $("inSep") ? checked("inSep") : undefined,
+        ptw: $("inPtW") ? $("inPtW").value : "3", ptd: $("inPtD") ? $("inPtD").value : "1", results: results, slots: slots, slotsKey: slotsKey }));
+    } catch (e) {}
+  }
+  function load() {
+    var d = null;
+    try { d = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) {}
+    if (!d || d.v !== 1) return false;
+    $("inNames").value = String(d.names || ""); $("inTitle").value = String(d.title || ""); $("inSub").value = String(d.sub || "");
+    setRadio("mode", d.mode === "league" ? "league" : "ko"); setRadio("order", d.order === "random" ? "random" : "seed"); setRadio("shape", d.shape === "one" ? "one" : "lr");
+    $("inNum").checked = d.num !== false; $("inSched").checked = d.sched !== false; $("inThird").checked = !!d.third;
+    if (PAPERS[d.paper]) $("inPaper").value = d.paper;
+    if (["1", "1.2", "0.85"].indexOf(d.fs) >= 0) $("inFontScale").value = d.fs;
+    if ($("inSep")) $("inSep").checked = d.sep !== false;
+    if ($("inPtW") && d.ptw != null) $("inPtW").value = d.ptw;
+    if ($("inPtD") && d.ptd != null) $("inPtD").value = d.ptd;
+    if (d.results && typeof d.results === "object") results = { ko: d.results.ko || {}, th: d.results.th || {}, lg: d.results.lg || {} };
+    if (Array.isArray(d.slots)) { slots = d.slots.map(function (x) { return typeof x === "string" ? x : null; }); slotsKey = String(d.slotsKey || ""); }
+    return true;
+  }
+
+  // ===== 見本 =====
+  var cv = $("cv"), timer = null;
+  function refresh(opts) {
+    opts = opts || {};
+    var C = conf(), T = C.mode === "ko" && C.list.length >= 2 ? buildKO(C.list, opts.forceDraw) : null;
+    var dpi = Math.min(110, 50 * Math.max(1, Math.min(2, window.devicePixelRatio || 1)) * (C.paper[0] > 300 ? 0.75 : 1));
+    var r = render(C, dpi, T);
+    if (r) { cv.width = r.width; cv.height = r.height; cv.getContext("2d").drawImage(r, 0, 0); r.width = r.height = 0; }
+    var raw = entryInfo.raw, msg;
+    if (C.mode === "league") msg = raw + "チーム" + (C.all.length > MAXLG ? "(総当たりは12チームまで。13チーム目からは入りません)" : "") + (C.list.length >= 2 ? "・全" + (C.list.length * (C.list.length - 1) / 2) + "試合" : "");
+    else msg = raw + "人" + (C.all.length > MAXKO ? "(64人まで。65人目からは入りません)" : "") + (T ? "・" + T.N + "人の表・全" + T.matches + "試合" + (T.third ? "+3位決定戦" : "") + (T.N > C.list.length ? "・シード(1回戦なし)" + (T.N - C.list.length) + "人" : "") : "");
+    if (entryInfo.dup) msg += "・同じ名前に(2)などをつけました";
+    if (entryInfo.cut) msg += "・名前は20文字までにしました";
+    if ($("countNote").textContent !== msg) $("countNote").textContent = msg;
+    cv.setAttribute("aria-label", (C.mode === "league" ? "リーグ表" : "トーナメント表") + "の見本(" + msg + ")");
+    // 印刷すると文字が小さすぎるときの注意
+    var info = (r && r._info) || {}, sn = $("sizeNote"), warn = "";
+    if (C.mode === "ko" && info.nameMm && info.nameMm < 2.6) warn = "名前の文字が小さくなります(約" + info.nameMm.toFixed(1) + "mm)。A3にするか、「左右から中央へ」にすると読みやすくなります。";
+    if (C.mode === "league" && info.schedOmitted) warn = "対戦順が用紙に入りきらないので、表だけを印刷します(対戦順は下の一覧をご覧ください)。";
+    sn.textContent = warn; sn.classList.toggle("hidden", !warn);
+    // 結果の一覧は、組み合わせや勝者が変わったときだけ作り直す(スコア入力中は作り直さない)
+    var winners = T ? T.rounds.slice(1).map(function (lv) { return lv.map(function (nd) { return (nd.kids[0].ent || "") + "/" + (nd.kids[1].ent || "") + ">" + (nd.ent || ""); }).join(","); }).join("|") + (T.third ? "|3:" + (T.losers || []).join(",") + ">" + (T.thirdRes ? T.thirdRes.w : "") : "") : "";
+    var key = C.mode + "|" + C.list.map(function (e) { return e.name; }).join("\n") + "|" + winners + "|" + (T && T.thirdOk) + "|" + (T && T.third);
+    if (key !== listKey || opts.rebuild) { buildResults(C, T); listKey = key; }
+    var box = $("schedBox"), ol = $("schedList");
+    box.classList.toggle("hidden", C.mode !== "league" || C.list.length < 2);
+    if (C.mode === "league" && C.list.length >= 2) {
+      ol.textContent = "";
+      roundRobin(C.list.length).forEach(function (pairs, i) { ol.appendChild(el("li", {}, roundText(C.list, pairs, i).replace(/^第\d+節\s+/, ""))); });
+    }
+    $("creditNote").textContent = EDITION === "full" ? "" : "無料版は、用紙の右下に小さくツール名が入ります。";
+    if (!opts.keepSt) setSt("outSt", "");
+    save();
+  }
+  function later() { clearTimeout(timer); timer = setTimeout(function () { refresh({ keepSt: true }); }, 200); }
+  function onMode() {
+    var lg = radio("mode") === "league";
+    $("koOpts").classList.toggle("hidden", lg); $("leagueOpts").classList.toggle("hidden", !lg);
+    refresh({ rebuild: true });
+  }
+  $("inNames").addEventListener("input", later);
+  ["inTitle", "inSub"].forEach(function (id) { $(id).addEventListener("input", later); });
+  document.querySelectorAll('input[name="mode"]').forEach(function (e) { e.addEventListener("change", onMode); });
+  document.querySelectorAll('input[name="order"]').forEach(function (e) { e.addEventListener("change", function () {
+    refresh({ rebuild: true });
+    setSt("drawSt", radio("order") === "random" ? "ランダムに並べました。やり直すときは「抽選する」を押します。" : "入力した順(1行目が第1シード)に並べました。");
+  }); });
+  document.querySelectorAll('input[name="shape"]').forEach(function (e) { e.addEventListener("change", function () { refresh(); }); });
+  ["inNum", "inPaper", "inFontScale", "inSched", "inThird"].forEach(function (id) { $(id).addEventListener("change", function () { refresh(); }); });
+  if ($("inSep")) $("inSep").addEventListener("change", function () { if (radio("order") === "random") { refresh({ forceDraw: true, rebuild: true }); setSt("drawSt", "抽選し直しました。"); } else refresh(); });
+  ["inPtW", "inPtD"].forEach(function (id) { if ($(id)) $(id).addEventListener("input", later); });
+  $("drawBtn").addEventListener("click", function () {
+    var list = entries().slice(0, MAXKO);
+    if (list.length < 2) { setSt("drawSt", "参加者を2人以上入れてください。", true); return; }
+    var hasRes = Object.keys(results.ko).length || Object.keys(results.th).length;
+    if (radio("order") === "random" && hasRes && !window.confirm("抽選し直すと組み合わせが変わり、入れたトーナメントの結果は消えます。抽選し直しますか?")) return;
+    setRadio("order", "random");
+    results.ko = {}; results.th = {};
+    refresh({ forceDraw: true, rebuild: true });
+    setSt("drawSt", "抽選しました(" + list.length + "人)。");
+  });
+  function onlyDefaults() { return $("inNames").value.split(/\r?\n/).every(function (l) { return !l.trim() || /^チーム\d+$/.test(l.trim()); }); }
+  $("fillBtn").addEventListener("click", function () {
+    var max = radio("mode") === "league" ? MAXLG : MAXKO, n = Math.max(2, Math.min(max, Math.round(num("inCount", 8))));
+    if (!onlyDefaults() && !window.confirm("いま入っている名前を「チーム1」〜「チーム" + n + "」に置きかえますか?")) return;
+    var a = []; for (var i = 1; i <= n; i++) a.push("チーム" + i);
+    $("inNames").value = a.join("\n"); refresh({ rebuild: true });
+    if (num("inCount", 8) > max) setSt("outSt", (radio("mode") === "league" ? "総当たりは12チーム" : "トーナメントは64人") + "までなので、" + n + "で埋めました。");
+  });
+  $("clearNamesBtn").addEventListener("click", function () {
+    if (!onlyDefaults() && !window.confirm("入っている名前をすべて消しますか?")) return;
+    $("inNames").value = ""; refresh({ rebuild: true }); $("inNames").focus();
+  });
+  $("resClear").addEventListener("click", function () {
+    if (window.confirm("入れた結果をすべて消しますか?")) { results = { ko: {}, th: {}, lg: {} }; refresh({ rebuild: true }); }
+  });
+  $("resetAll").addEventListener("click", function () {
+    if (!window.confirm("名前・大会名・結果をすべて消して、最初の状態に戻しますか?")) return;
+    try { localStorage.removeItem(STORE); } catch (e) {}
+    location.reload();
+  });
+
+  // ===== 印刷・保存 =====
+  function toBlob(c) { return new Promise(function (res) { c.toBlob(function (b) { res(b); }, "image/png"); }); }
+  function download(blob, name) {
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  var busy = false, printUrls = [];
+  function clearPrint() { printUrls.forEach(function (u) { URL.revokeObjectURL(u); }); printUrls = []; $("printArea").textContent = ""; document.body.classList.remove("printing"); }
+  function bigRender() {
+    var C = conf();
+    if (C.list.length < 2) { setSt("outSt", "参加者を2人以上入れてください。", true); return null; }
+    var T = C.mode === "ko" ? buildKO(C.list) : null, P = C.paper, dpi = P[0] * P[1] > 70000 ? 250 : 300;
+    return { C: C, c: render(C, dpi, T) };
+  }
+  $("printBtn").addEventListener("click", function () {
+    if (busy) return; var R = bigRender(); if (!R || !R.c) return; busy = true; clearPrint();
+    var P = R.C.paper, c = R.c;
+    $("pageStyle").textContent = "@page { size: " + P[0] + "mm " + P[1] + "mm; margin: 0; }";
+    toBlob(c).then(function (b) {
+      c.width = c.height = 0;
+      if (!b) throw new Error("blob");
+      return new Promise(function (res, rej) { var u = URL.createObjectURL(b), im = new Image(); printUrls.push(u); im.style.width = (P[0] - 0.3) + "mm"; im.style.height = (P[1] - 0.3) + "mm"; im.onload = res; im.onerror = function () { rej(new Error("img")); }; im.alt = ""; im.src = u; $("printArea").appendChild(im); });
+    }).then(function () {
+      document.body.classList.add("printing");
+      setSt("outSt", "印刷画面を開きました。用紙は「" + P[2] + "」、倍率は「100%」で印刷してください。");
+      track("tournament_print", { mode: R.C.mode, n: R.C.list.length, paper: R.C.paperKey });
+      setTimeout(function () { window.print(); }, 50);
+    }).catch(function () { clearPrint(); setSt("outSt", "印刷用の画像を作れませんでした。", true); }).then(function () { busy = false; });
+  });
+  window.addEventListener("afterprint", function () { setTimeout(clearPrint, 300); });
+  $("pngBtn").addEventListener("click", function () {
+    if (busy) return; var R = bigRender(); if (!R || !R.c) return; busy = true;
+    var c = R.c;
+    toBlob(c).then(function (b) {
+      c.width = c.height = 0;
+      if (!b) throw new Error("blob");
+      var name = (R.C.title || (R.C.mode === "league" ? "リーグ表" : "トーナメント表")).replace(/[\/\\:*?"<>|]/g, "") + "_" + R.C.paper[2] + ".png";
+      var file = null; try { file = new File([b], name, { type: "image/png" }); } catch (e) {}
+      var phone = window.matchMedia && matchMedia("(pointer:coarse)").matches;
+      track("tournament_save", { mode: R.C.mode, n: R.C.list.length, paper: R.C.paperKey });
+      if (phone && file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file] }).then(function () { setSt("outSt", "共有メニューから「画像を保存」を選ぶと、写真に入ります。"); }, function (err) {
+          if (err && err.name === "AbortError") { setSt("outSt", "共有をやめました。もう一度押すと保存できます。"); return; }
+          download(b, name); setSt("outSt", "画像を保存しました。");
+        });
+      }
+      download(b, name);
+      setSt("outSt", "画像を保存しました(" + R.C.paper[2] + ")。コンビニで印刷するときは、同じ大きさの用紙で。iPhoneでは「ファイル」に入ることがあります。");
+    }).catch(function () { setSt("outSt", "画像を作れませんでした。", true); }).then(function () { busy = false; });
+  });
+
+  if (EDITION === "full") $("pro-section").classList.add("hidden");
+  if (EDITION !== "full") {
+    $("privacyNote").innerHTML = '入力した内容はどこにも送信されません(すべてこのブラウザの中で処理し、このブラウザに保存します)。このページでは利用状況の把握のためにアクセス解析(Google Analytics)を使っています(入力した内容は含みません)。<a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Googleによるデータの使用について</a>';
+  }
+  if (!load()) { var init = []; for (var i = 1; i <= 8; i++) init.push("チーム" + i); $("inNames").value = init.join("\n"); }
+  onMode();
+})();
+</script>
+<!--UPSELL_JS_START-->
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search);
+  if (q.get("obs") === "1" || document.documentElement.classList.contains("obs")) return;
+  // 小さな案内(トースト)は、買い切り版がパソコン向けなので、マウス操作の広い画面でだけ出す
+  var pc = !!(window.matchMedia && matchMedia("(pointer:fine) and (min-width:720px)").matches);
+  var buy = document.getElementById("buyLink");
+  var pro = document.getElementById("pro-section");
+  if (!buy || !pro) return;
+  var FEATS = [];
+  var path = location.pathname.replace(/index\.html$/, "");
+  var KEY_CLOSED = "upsell_closed_until:" + path, KEY_SHOWN = "upsell_shown:" + path;
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function sess(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
+  function gtagEv(name, p) { if (!window.dataLayer) return; (function () { window.dataLayer.push(arguments); })("event", name, p || {}); }
+
+  var shown = false;
+  function blocked() {
+    if (shown || sess(KEY_SHOWN) === "1") return true;
+    var until = Number(store(KEY_CLOSED) || 0);
+    return until && Date.now() < until;
+  }
+  function feats() {
+    if (FEATS.length) return FEATS;
+    var out = [];
+    var lis = pro.querySelectorAll(".feat-list li");
+    for (var i = 0; i < lis.length && out.length < 3; i++) {
+      var all = lis[i].textContent.replace(/\s+/g, " ").trim();
+      if (/スマホ|HTMLファイル|パソコンで使う/.test(all)) continue;
+      var st = lis[i].querySelectorAll("strong");
+      var t = st.length === 1 ? st[0].textContent : all.split(/[::。]/)[0];
+      t = t.replace(/[((][^()()]*[))]/g, "").replace(/\s+/g, " ").trim();
+      if (t.length > 40) t = t.slice(0, 39) + "…";
+      if (t) out.push(t);
+    }
+    return out;
+  }
+  // 「〜してください」「できません」など、失敗の表示が出ていたら案内しない
+  function failed() {
+    var els = document.querySelectorAll('[role="status"], [role="alert"], [aria-live]');
+    for (var i = 0; i < els.length; i++) {
+      if (pro.contains(els[i]) || !els[i].offsetParent) continue;
+      if (/ください|できません|できませんでした|失敗|ありません|エラー/.test(els[i].textContent)) return true;
+    }
+    return false;
+  }
+  function proVisible() {
+    var r = pro.getBoundingClientRect();
+    return r.top < innerHeight && r.bottom > 0;
+  }
+  function show(trigger) {
+    if (!pc || blocked() || (trigger === "action" && failed()) || proVisible()) return;
+    var list = feats();
+    if (!list.length) return;
+    shown = true;
+    sess(KEY_SHOWN, "1");
+    var box = document.createElement("aside");
+    box.className = "upsell-toast";
+    box.setAttribute("aria-label", "買い切り版のご案内");
+    box.setAttribute("aria-live", "polite");
+    document.body.appendChild(box);
+    var p = document.createElement("p");
+    p.textContent = trigger === "limit"
+      ? "この先は買い切り版の機能です。パソコン用の買い切り版(¥100・税込)なら:"
+      : "うまくできましたか? パソコン用の買い切り版(¥100・税込)なら、さらに:";
+    var ul = document.createElement("ul");
+    list.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    var a = document.createElement("a");
+    a.className = "upsell-go";
+    a.id = "upsellToastLink";
+    a.href = buy.href;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "BOOTHで見る(新しいタブ)";
+    var bg = getComputedStyle(buy).backgroundColor;
+    if (bg && !/rgba?\(0, 0, 0, 0\)|transparent/.test(bg)) a.style.background = bg;
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "upsell-x";
+    x.setAttribute("aria-label", "この案内を閉じる");
+    x.textContent = "×";
+    function close(remember) {
+      if (box.parentNode) box.parentNode.removeChild(box);
+      document.removeEventListener("keydown", onKey);
+      if (remember) store(KEY_CLOSED, String(Date.now() + 7 * 864e5));
+    }
+    // Escはページ側の操作(選択解除など)にも使われるので、案内の中にフォーカスがある時だけ閉じる
+    function onKey(e) { if (e.key === "Escape" && box.contains(document.activeElement)) close(true); }
+    x.addEventListener("click", function () { close(true); });
+    a.addEventListener("click", function () { setTimeout(function () { close(false); }, 0); });
+    document.addEventListener("keydown", onKey);
+    setTimeout(function () {
+      var note = document.createElement("small");
+      note.className = "upsell-note";
+      note.textContent = "スマホではファイルを開けない機種があります";
+      box.appendChild(x); box.appendChild(p); box.appendChild(ul); box.appendChild(a); box.appendChild(note);
+    }, 50);
+    gtagEv("upsell_show", { trigger: trigger });
+  }
+
+  // 保存・コピー・印刷・書き出しを押した直後(結果を受け取れたタイミング)
+  var OK = /保存|コピー|印刷|書き出|ダウンロード|共有|PDF/;
+  var NG = /読み込|リセット|消|削除|このブラウザに保存|確認|イメージを見る|戻/;
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button, a[download], input[type=button], input[type=submit]") : null;
+    if (!el || el.closest("#pro-section, .upsell-toast, #anshin")) return;
+    var label = (el.textContent || el.value || "").replace(/\s+/g, " ");
+    if (!OK.test(label) || NG.test(label)) return;
+    setTimeout(function () { show("action"); }, 1500);
+  }, true);
+
+  // 無料版の上限まわり
+  // (1) ページが出す「買い切り版」の一文に、購入欄へのリンクを足す(スマホでも)。🔒のタブは薄く表示されているので入れない
+  // (2) 案内(パソコンのみ)は、はっきりした合図のときだけ出す: 🔒のクリック・買い切り版にふれたalert・
+  //     初めて出た「〜まで/のみ/以降/入っていません」の上限の一文(計算のたびに出る誘導文や、同じ文の描き直しでは出さない)
+  var SKIP = "#pro-section, .upsell-toast, .upsell-top, #anshin, a, button, label, select, option, h1, h2, h3, .badge, header, footer, nav, textarea, pre, code, [contenteditable], svg";
+  var LIMIT = /まで|のみ|以降|入っていません/;
+  var seenText = {}, ready = false;
+  function goPro(e) {
+    if (e) e.preventDefault();
+    pro.setAttribute("tabindex", "-1");
+    pro.scrollIntoView({ behavior: "smooth", block: "start" });
+    pro.focus({ preventScroll: true });
+  }
+  function linkify(root, deep) {
+    var limitHit = false;
+    var els = root.matches("p, div, span, li") ? [root] : [];
+    if (deep) els = els.concat([].slice.call(root.querySelectorAll("p, div, span, li")));
+    els.forEach(function (el) {
+      if (el.closest(SKIP) || el.closest('[role="radio"], [role="option"], [role="tab"], [role="button"], [tabindex]:not([tabindex="-1"])') || el.querySelector("a, button, p, div, li, input, label")) return;
+      // 選択肢の「○○(買い切り版)」ではなく、文として買い切り版にふれている要素だけ
+      var own = "";
+      for (var n = el.firstChild; n; n = n.nodeType === 1 && n.className === "upsell-inline" ? null : n.nextSibling) if (n.nodeType === 3) own += n.nodeValue;
+      own = own.trim();
+      if (own.indexOf("買い切り版") < 0 || /[((]買い切り版[))]$/.test(own) || /^🔒/.test(own)) return;
+      var key = own.replace(/\d+/g, "#");
+      if (ready && !seenText[key] && LIMIT.test(own) && !el.closest(".teaser, #teaser, [id$=teaser], #tz")) limitHit = true;
+      seenText[key] = 1;
+      if (el.querySelector(".upsell-inline")) return;
+      var a = document.createElement("a");
+      a.className = "upsell-inline";
+      a.href = "#pro-section";
+      a.setAttribute("aria-label", "くわしく:買い切り版の説明へ移動");
+      a.textContent = "くわしく";
+      var ar = document.createElement("span");
+      ar.setAttribute("aria-hidden", "true");
+      ar.textContent = " ↓";
+      a.appendChild(ar);
+      a.addEventListener("click", goPro);
+      el.appendChild(document.createTextNode(" "));
+      el.appendChild(a);
+    });
+    return limitHit;
+  }
+  linkify(document.body, true);
+  setTimeout(function () { ready = true; }, 1500);
+  var topLink = document.querySelector("#upsellTop a");
+  if (topLink) topLink.addEventListener("click", goPro);
+  new MutationObserver(function (ms) {
+    // 変わったところだけを調べる(足された要素はその中も、文字の変更は親要素だけ)
+    var hit = false, done = new Set();
+    function check(t, deep) {
+      if (!t || t.nodeType !== 1 || done.has(t) || t.closest(".upsell-toast")) return;
+      done.add(t);
+      if (linkify(t, deep)) hit = true;
+    }
+    ms.forEach(function (m) {
+      if (m.type === "characterData") { check(m.target.parentNode, false); return; }
+      check(m.target, false);
+      for (var i = 0; i < m.addedNodes.length; i++) if (m.addedNodes[i].nodeType === 1) check(m.addedNodes[i], true);
+    });
+    if (hit) setTimeout(function () { show("limit"); }, 800);
+  }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button, div, span, li") : null;
+    var first = el && el.firstChild && el.firstChild.nodeType === 3 ? el.firstChild.nodeValue : "";
+    if (!/^\s*🔒/.test(first) || e.target.closest("#pro-section")) return;
+    if (pc) setTimeout(function () { show("limit"); }, 300); else goPro();
+  }, true);
+  var origAlert = window.alert;
+  window.alert = function (msg) {
+    var r = origAlert.apply(window, arguments);
+    if (/買い切り版/.test(String(msg))) setTimeout(function () { show("limit"); }, 300);
+    return r;
+  };
+})();
+</script>
+<!--UPSELL_JS_END-->
+</body>
+</html>
